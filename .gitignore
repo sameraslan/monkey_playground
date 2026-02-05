@@ -3,8 +3,10 @@ archive/
 results/
 blt copy.py
 resources/
+model_family/
 __pycache__
 datasets/saved_data/
 run_model.ipynb
 *.db
 .ds_store
+.DS_Store

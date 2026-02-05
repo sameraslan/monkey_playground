@@ -43,17 +43,18 @@ class VGGFaces2(data.Dataset):
         :param upper: max number of image used for debug
         """
 
+        root = '/engram/nklab/datasets/VGG-Face2/'
         # 0. id label map
-        meta_file = '/engram/nklab/VGGFace2/VGG-Face2/meta/identity_meta.csv' 
+        meta_file = root + '/meta/identity_meta.csv' 
         #'/scratch/nklab/projects/face_proj/datasets/VGGFace2/meta/identity_meta_cleaned.csv'
         self.id_label_dict = get_id_label_map(meta_file)
 
         # 1. data loader
-        root = '/scratch/nklab/projects/face_proj/datasets/VGGFace2/'
+         #'/scratch/nklab/projects/face_proj/datasets/VGGFace2/'
 
         # '/scratch/nklab/projects/face_proj/models/vgg16_bn/VGGFace2/'
-        train_img_list_file = root+ 'meta/train_list.txt' # args.train_img_list_file
-        test_img_list_file = root  + 'meta/test_list.txt' # args.test_img_list_file
+        # train_img_list_file = root+ 'meta/train_list.txt' # args.train_img_list_file
+        # test_img_list_file = root  + 'meta/test_list.txt' # args.test_img_list_file
 
         assert os.path.exists(root), "root: {} not found.".format(root)
         self.root = root
@@ -103,7 +104,7 @@ class VGGFaces2(data.Dataset):
         if split_folder == 'train':
             #im_list = np.random.permutation(im_list)
             
-            train_bb_path = '/scratch/nklab/projects/face_proj/datasets/VGGFace2/meta/loose_bb_train_wlabels.csv'
+            train_bb_path = root + '/meta/loose_bb_train_wlabels.csv' # '/scratch/nklab/projects/face_proj/datasets/VGGFace2/meta/loose_bb_train_wlabels.csv'
             bb_df = pd.read_csv(train_bb_path)
             
             for i in tqdm(range(num_cats)): #range(len(dir_list))): #range(10): #[1]: #8631
@@ -209,7 +210,7 @@ class VGGFaces2(data.Dataset):
                     
         elif split_folder == 'test':
 
-            test_bb_path = '/scratch/nklab/projects/face_proj/datasets/VGGFace2/meta/loose_bb_test_wlabels.csv'
+            test_bb_path = root + '/meta/loose_bb_test_wlabels.csv' # '/scratch/nklab/projects/face_proj/datasets/VGGFace2/meta/loose_bb_test_wlabels.csv'
             bb_df = pd.read_csv(test_bb_path)
 
             for i in tqdm(range(len(dir_list))): #range(len(dir_list))): #range(10): #[1]: #8631

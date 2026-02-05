@@ -51,7 +51,8 @@ def get_args_parser():
     parser.add_argument('--output_path', default='./results/', type=str,
                         help='path for storing ')
     
-    parser.add_argument('--model', choices=['blt_b', 'blt_b_pm', 'blt_b_top2linear', 'blt_b2', 
+    parser.add_argument('--model', choices=['blt_b', 'blt_b_pm', 'blt_b_top2linear', 
+                                            'blt_b_pm_top2linear', 'blt_b2', 
                                             'blt_b3', 'blt_bl', 'blt_bl_top2linear', 'blt_b2l',
                                             'blt_b3l', 'blt_bt', 'blt_b2t', 'blt_b3t', 'blt_blt',
                                             'blt_b2lt', 'blt_b3lt', 'blt_bt2', 'blt_b2t2', 
@@ -71,6 +72,10 @@ def get_args_parser():
 
     parser.add_argument('--smooth_labels', default=1, type=int,
                         help='whether to smooth the lables for training')
+    
+    parser.add_argument('--optimizer', choices=['adam', 'sgd'] 
+                        , default='adam', type=str, 
+                        help='which optimizer to use')  
     
     parser.add_argument('--loss_choice', choices=['weighted', 'decay'] 
                         , default='decay', type=str, 
@@ -108,7 +113,7 @@ def get_args_parser():
     parser.add_argument('--dataset', choices=['imagenet', 'vggface2', 'bfm_ids', 'NSD',
                                               'imagenet_vggface2', 'imagenet_face']
                         , default='imagenet', type=str)
-    parser.add_argument('--data_path', default='/share/data/imagenet-pytorch',
+    parser.add_argument('--data_path', default='/engram/nklab/datasets/imagenet-pytorch',
                          type=str, help='path to ImageNet folder')
     parser.add_argument('--image_size', default=224, type=int, 
                         help='what size should the image be resized to?')
@@ -223,12 +228,15 @@ def main(rank, world_size, args):
             train_params = checkpoint['train_params']
             param_dicts = [ { "params" : [ p for n , p in model.named_parameters() if n in train_params ]}, ] 
 
-            optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
-                          weight_decay=args.weight_decay)
-            
-            # optimizer = torch.optim.SGD(param_dicts, args.lr,
-            #                     momentum=args.momentum,
-            #                     weight_decay=args.weight_decay)
+            if args.optimizer == 'adam':
+                optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
+                            weight_decay=args.weight_decay)
+            elif args.optimizer == 'sgd':
+                optimizer = torch.optim.SGD(param_dicts, args.lr,
+                                    momentum=args.momentum,
+                                    weight_decay=args.weight_decay)
+
+
             optimizer.load_state_dict(checkpoint['optimizer'])
         
             lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop, gamma=0.5)
@@ -245,15 +253,17 @@ def main(rank, world_size, args):
 
         print('\ntrain_params', train_params)
 
-        optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
-                                      weight_decay=args.weight_decay)
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop, gamma=0.5)
+        if args.optimizer == 'adam':
+            optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
+                                        weight_decay=args.weight_decay)
+            lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop, gamma=0.5)
 
-        # optimizer = torch.optim.SGD(param_dicts, args.lr,
-        #                         momentum=args.momentum,
-        #                         weight_decay=args.weight_decay)
-        
-        #lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,90], gamma=0.1)
+        elif args.optimizer == 'sgd':
+            optimizer = torch.optim.SGD(param_dicts, args.lr,
+                                    momentum=args.momentum,
+                                    weight_decay=args.weight_decay)
+            
+            lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,90], gamma=0.1)
 
         args.start_epoch = 0
 
@@ -329,6 +339,7 @@ def main(rank, world_size, args):
                         utils.save_on_master({
                             'model': model.state_dict(),
                             'optimizer': optimizer.state_dict(),
+                            'optimizer_method': args.optimizer,
     #                         'train_params' : train_params,
                             'lr_scheduler': lr_scheduler.state_dict(),
                             'epoch': epoch,

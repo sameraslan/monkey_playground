@@ -312,6 +312,12 @@ def get_blt_model(model_name, pretrained=False, map_location=None, **kwargs):
             layer_channels = {'inp':img_channels, '0':64, '1':128, '2':256, '3':256, '4':512, '5':512}
             out_shape  = {'0':112, '1':56, '2':28, '3':28, '4':14, '5':7}
 
+            # if we have two linear layer after 4 conv layers
+            if 'top2linear' in model_name:
+                #layer_channels  = {'inp':img_channels, '0':64, '1':128, '2':256, '3':512, '4':1024 , '5':512}
+                layer_channels  = {'inp':img_channels, '0':64, '1':128, '2':256, '3':512, '4':2048 , '5':2048}
+                out_shape  = {'0':56, '1':28, '2':14, '3':7, '4':1, '5':1}
+
     elif num_layers == 8:
         # layer_channels = {'inp':img_channels, '0':64, '1':64, '2':128, '3':128, '4':256, '5':512}
         # out_shape  = {'0':56, '1':28, '2':14, '3':14, '4':7, '5':7}
