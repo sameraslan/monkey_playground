@@ -10,3 +10,4 @@ run_model.ipynb
 *.db
 .ds_store
 .DS_Store
+datasets/TVSD/
